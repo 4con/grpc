@@ -1,3 +1,5 @@
+# This repo is for run grpc on windows xp sp3. It's not fully tested!!! 
+
 [![Build Status](https://grpc-testing.appspot.com/job/gRPC_master/badge/icon)](https://grpc-testing.appspot.com/job/gRPC_master)
 
 [gRPC - An RPC library and framework](http://github.com/grpc/grpc)

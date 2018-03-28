@@ -22,6 +22,8 @@
 #include <grpc/support/cpu.h>
 #include <grpc/support/log.h>
 
+#if (_WIN32_WINNT >= 0x600)
+
 unsigned gpr_cpu_num_cores(void) {
   SYSTEM_INFO si;
   GetSystemInfo(&si);
@@ -29,5 +31,15 @@ unsigned gpr_cpu_num_cores(void) {
 }
 
 unsigned gpr_cpu_current_cpu(void) { return GetCurrentProcessorNumber(); }
+
+#elif (_WIN32_WINNT >= 0x501)
+
+unsigned gpr_cpu_num_cores(void) { return 1; }
+
+unsigned gpr_cpu_current_cpu(void) { return 0; }
+
+#else
+#error Not support older xp
+#endif
 
 #endif /* GPR_WINDOWS */

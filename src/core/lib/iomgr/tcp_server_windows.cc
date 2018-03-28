@@ -251,8 +251,13 @@ static grpc_error* start_accept_locked(grpc_tcp_listener* port) {
     return GRPC_ERROR_NONE;
   }
 
+#if (_WIN32_WINNT >= 0x502 && _WIN32_WINNT < 0x600)
+  sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0,
+                   WSA_FLAG_OVERLAPPED);
+#else
   sock = WSASocket(AF_INET6, SOCK_STREAM, IPPROTO_TCP, NULL, 0,
                    WSA_FLAG_OVERLAPPED);
+#endif
   if (sock == INVALID_SOCKET) {
     error = GRPC_WSA_ERROR(WSAGetLastError(), "WSASocket");
     goto failure;
@@ -478,6 +483,7 @@ grpc_error* grpc_tcp_server_add_port(grpc_tcp_server* s,
     }
   }
 
+#if (_WIN32_WINNT >= 0x600)
   if (grpc_sockaddr_to_v4mapped(addr, &addr6_v4mapped)) {
     addr = &addr6_v4mapped;
   }
@@ -488,9 +494,18 @@ grpc_error* grpc_tcp_server_add_port(grpc_tcp_server* s,
 
     addr = &wildcard;
   }
-
   sock = WSASocket(AF_INET6, SOCK_STREAM, IPPROTO_TCP, NULL, 0,
                    WSA_FLAG_OVERLAPPED);
+#else
+  /* Treat :: or 0.0.0.0 as a family-agnostic wildcard. */
+  if (grpc_sockaddr_is_wildcard(addr, port)) {
+    grpc_sockaddr_make_wildcard4(*port, &wildcard);
+    addr = &wildcard;
+  }
+  sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0,
+                   WSA_FLAG_OVERLAPPED);
+#endif
+
   if (sock == INVALID_SOCKET) {
     error = GRPC_WSA_ERROR(WSAGetLastError(), "WSASocket");
     goto done;

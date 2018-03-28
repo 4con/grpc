@@ -141,6 +141,8 @@ static void tcp_client_connect_impl(grpc_closure* on_done,
 
   *endpoint = NULL;
 
+#if (_WIN32_WINNT >= 0x600)
+
   /* Use dualstack sockets where available. */
   if (grpc_sockaddr_to_v4mapped(addr, &addr6_v4mapped)) {
     addr = &addr6_v4mapped;
@@ -148,6 +150,12 @@ static void tcp_client_connect_impl(grpc_closure* on_done,
 
   sock = WSASocket(AF_INET6, SOCK_STREAM, IPPROTO_TCP, NULL, 0,
                    WSA_FLAG_OVERLAPPED);
+#else
+
+  sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0,
+                   WSA_FLAG_OVERLAPPED);
+
+#endif
   if (sock == INVALID_SOCKET) {
     error = GRPC_WSA_ERROR(WSAGetLastError(), "WSASocket");
     goto failure;
@@ -170,7 +178,11 @@ static void tcp_client_connect_impl(grpc_closure* on_done,
     goto failure;
   }
 
+#if (_WIN32_WINNT >= 0x600)
   grpc_sockaddr_make_wildcard6(0, &local_address);
+#else
+  grpc_sockaddr_make_wildcard4(0, &local_address);
+#endif
 
   status =
       bind(sock, (struct sockaddr*)&local_address.addr, (int)local_address.len);

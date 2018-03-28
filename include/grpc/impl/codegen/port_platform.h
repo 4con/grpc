@@ -41,11 +41,11 @@
 
 #ifndef _WIN32_WINNT
 #error \
-    "Please compile grpc with _WIN32_WINNT of at least 0x600 (aka Windows Vista)"
+    "Please compile grpc with _WIN32_WINNT of at least 0x502"
 #else /* !defined(_WIN32_WINNT) */
-#if (_WIN32_WINNT < 0x0600)
+#if (_WIN32_WINNT < 0x0502)
 #error \
-    "Please compile grpc with _WIN32_WINNT of at least 0x600 (aka Windows Vista)"
+    "Please compile grpc with _WIN32_WINNT of at least 0x502"
 #endif /* _WIN32_WINNT < 0x0600 */
 #endif /* defined(_WIN32_WINNT) */
 

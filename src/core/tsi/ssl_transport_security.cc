@@ -302,6 +302,40 @@ static tsi_result add_pem_certificate(X509* cert, tsi_peer_property* property) {
   return result;
 }
 
+#if (_WIN32_WINNT < 0x600 && _WIN32_WINNT >= 0x501)
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+static const char *inet_ntop(int af, const void *src, char *dst, socklen_t size)
+{
+  struct sockaddr_storage ss;
+  unsigned long s = size;
+
+  ZeroMemory(&ss, sizeof(ss));
+  ss.ss_family = af;
+
+  switch(af) {
+    case AF_INET:
+      ((struct sockaddr_in *)&ss)->sin_addr = *(struct in_addr *)src;
+      break;
+    case AF_INET6:
+      ((struct sockaddr_in6 *)&ss)->sin6_addr = *(struct in6_addr *)src;
+      break;
+    default:
+      return NULL;
+  }
+  /* cannot direclty use &size because of strict aliasing rules */
+  return (WSAAddressToString((struct sockaddr *)&ss, sizeof(ss), NULL, dst, &s) == 0)?
+          dst : NULL;
+}
+
+#endif
+
 /* Gets the subject SANs from an X509 cert as a tsi_peer_property. */
 static tsi_result add_subject_alt_names_properties_to_peer(
     tsi_peer* peer, GENERAL_NAMES* subject_alt_names,

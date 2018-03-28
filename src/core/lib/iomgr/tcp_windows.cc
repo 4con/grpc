@@ -63,13 +63,18 @@ static grpc_error* set_non_block(SOCKET sock) {
 }
 
 static grpc_error* set_dualstack(SOCKET sock) {
+#if (_WIN32_WINNT >= 0x502 && _WIN32_WINNT < 0x600)
+  return GRPC_ERROR_NONE;
+#else
   int status;
   unsigned long param = 0;
+
   status = setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&param,
                       sizeof(param));
   return status == 0
              ? GRPC_ERROR_NONE
              : GRPC_WSA_ERROR(WSAGetLastError(), "setsockopt(IPV6_V6ONLY)");
+#endif
 }
 
 grpc_error* grpc_tcp_prepare_socket(SOCKET sock) {

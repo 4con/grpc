@@ -37,6 +37,7 @@ set(gRPC_INSTALL_CMAKEDIR "lib/cmake/${PACKAGE_NAME}" CACHE STRING "Installation
 
 # Options
 option(gRPC_BUILD_TESTS "Build tests" OFF)
+option(gRPC_BUILD_FOR_WINDOWS_XP "Build for windows xp" OFF)
 
 set(gRPC_INSTALL_default ON)
 if (NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -90,13 +91,19 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 if (MSVC)
   include(cmake/msvc_static_runtime.cmake)
-  add_definitions(-D_WIN32_WINNT=0x600 -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
   # needed to compile protobuf
   add_definitions(/wd4065 /wd4506)
   # TODO(jtattermusch): revisit C4267 occurrences throughout the code
   add_definitions(/wd4267)
   # TODO(jtattermusch): needed to build boringssl with VS2017, revisit later
   add_definitions(/wd4987 /wd4774 /wd4819 /wd4996 /wd4619)
+
+  if(gRPC_BUILD_FOR_WINDOWS_XP)
+    add_definitions(-D_WIN32_WINNT=0x502 -DWINVER=0x502)
+  else()
+    add_definitions(-D_WIN32_WINNT=0x600)
+  endif()
 endif()
 
 if (gRPC_USE_PROTO_LITE)
